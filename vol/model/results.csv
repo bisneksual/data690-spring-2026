@@ -1,0 +1,3 @@
+,Model Name,Model Type,Mean Square Error (Test),Root MSE (Test),R2 Score (Test),Training Time,Target Variable,Feature Selection
+0,Feedforward,Neural Network,0.03900808468461037,0.15557505190372467,-1.6120023727416992,-49.54014873504639,Latitude,False
+0,Feedforward,Neural Network,0.1358642876148224,0.29946595430374146,1.2869161367416382,-48.09150528907776,Longitude,False
