@@ -1,3 +1,4 @@
+mkdir data
 mkdir vol/data
 mkdir vol/explore
 mkdir vol/model

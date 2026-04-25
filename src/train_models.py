@@ -167,7 +167,7 @@ for model, info in zip([rnn,],_info):
     _result['Feature Selection'] = False
         
     print("\t\tAdding latitude results to dataframe...")
-    df_results = concat([df_results,DataFrame([{**info,**_result,**_train}])])
+    df_results.loc[-1] = {**info,**_result,**_train}
 
     start = time.time()
     history = model.fit(
@@ -195,7 +195,7 @@ for model, info in zip([rnn,],_info):
     _result['Feature Selection'] = False
         
     print("\t\tAdding longitude results to dataframe...")
-    df_results = concat([df_results,DataFrame([{**info,**_result,**_train}])])
+    df_results.loc[-1] = {**info,**_result,**_train}
 
 print("Done.")
 
@@ -232,7 +232,7 @@ for name, model in zip(["MLR","Poly","Ridge"],[mlr,]):
         }
 
         print("Writing test metrics to dataframe...")
-        df_results = concat(df_results,DataFrame(_result))
+        df_results.loc[-1] = _result
 
 ## Polynomial
 
