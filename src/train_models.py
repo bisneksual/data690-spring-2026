@@ -147,13 +147,27 @@ for model, info in zip([rnn,],_info):
     stop = time.time()
     #print(history.history)
 
+    _train = dict(
+        zip(
+            [
+                "Mean Square Error (Train)",
+                "Root MSE (Train)",
+                "R2 Score (Train)",
+                "Mean Square Error (Validate)",
+                "Root MSE (Validate)",
+                "R2 Score (Validate)"
+            ],
+            [x[-1] for x in history.history.values()]
+        )
+    )
+
     _result = dict(zip(["Mean Square Error (Test)","Root MSE (Test)","R2 Score (Test)"],model.evaluate(dfX_test,dfLat_test,verbose=False)))
     _result['Training Time'] = stop - start
     _result['Target Variable'] = "Latitude"
     _result['Feature Selection'] = False
         
     print("\t\tAdding latitude results to dataframe...")
-    df_results = concat([df_results,DataFrame([{**info,**_result}])])
+    df_results = concat([df_results,DataFrame([{**info,**_result,**_train}])])
 
     start = time.time()
     history = model.fit(
@@ -173,7 +187,7 @@ for model, info in zip([rnn,],_info):
     stop = time.time()
     #print(history.history)
 
-    _train = dict()
+    _train = dict(zip(["Mean Square Error (Train)","Root MSE (Train)","R2 Score (Train)","Mean Square Error (Validate)","Root MSE (Validate)","R2 Score (Validate)"],[x[-1] for x in history.history.values()]))
 
     _result = dict(zip(["Mean Square Error (Test)","Root MSE (Test)","R2 Score (Test)"],model.evaluate(dfX_test,dfLon_test,verbose=False)))
     _result['Training Time'] = stop - start
@@ -181,7 +195,7 @@ for model, info in zip([rnn,],_info):
     _result['Feature Selection'] = False
         
     print("\t\tAdding longitude results to dataframe...")
-    df_results = concat([df_results,DataFrame([{**info,**_result}])])
+    df_results = concat([df_results,DataFrame([{**info,**_result,**_train}])])
 
 print("Done.")
 
