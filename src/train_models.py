@@ -1,7 +1,10 @@
 import keras
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 from pandas import read_csv, concat, DataFrame, Series
 import numpy as np
-import sklearn
+from sklearn.metrics import mean_squared_error,root_mean_squared_error,r2_score
 import time
 
 print("Loading dataset...")
@@ -16,19 +19,12 @@ dfLon = dfX["Longitude"]
 dfX = dfX.drop(columns=["Latitude","Longitude"])
 print("Done. Features: ", len(dfX.columns))
 
-print("Preparing dataset for training...")
-print("\tDropping string variables for now...")
-dfX = dfX.select_dtypes(exclude="str")
-#print("\tNormalizing latitude values...")
-#dfLat = (dfLat - dfLat.min()) / (dfLat.max()-dfLat.min())
-#print("\tNormalizing longitude values...")
-#dfLon = (dfLon - dfLon.min())/(dfLon.max()-dfLon.min())
-print("Done.")
+
 
 print("Splitting training and testing sets...")
 dfX_train, dfX_test, \
 dfLat_train, dfLat_test, \
-dfLon_train, dfLon_test  = sklearn.model_selection.train_test_split(
+dfLon_train, dfLon_test  = train_test_split(
     dfX,
     dfLat,
     dfLon,
@@ -49,17 +45,34 @@ thresh = int(len(dfX_train)/2)
 #dfLon_train = dfLon_train.iloc[thresh:]
 print("Done.")
 
-print("Starting feature selection for latitude...")
-lasso_lat = sklearn.linear_model.LassoCV(cv=5).fit(dfX_train,dfLat_train)
-coefs_lat = Series(lasso_lat.coef_,index=dfX_train.columns)
-lat_feats = list(coefs_lat[coefs_lat != 0].index)
-print("Done. ",lat_feats)
+print("Preparing dataset for training...")
+feature_scale = MinMaxScaler((0,1))
+target_scale = MinMaxScaler((-1,1))
+print("\tNormalizing features...")
+dfX_train = DataFrame(feature_scale.fit_transform(dfX_train))
+dfX_test = DataFrame(feature_scale.transform(dfX_test))
+print(dfX_train.shape)
+print("\tNormalizing latitude values...")
+dfLat_train = DataFrame(target_scale.fit_transform(DataFrame(dfLat_train)))
+dfLat_test = DataFrame(target_scale.transform(DataFrame(dfLat_test)))
+#print(dfLat_train.shape)
+print("\tNormalizing longitude values...")
+dfLon_train = DataFrame(target_scale.fit_transform(DataFrame(dfLon_train)))
+dfLon_test = DataFrame(target_scale.transform(DataFrame(dfLon_test)))
+#print(dfLon_train.shape)
+print("Done.")
 
-print("Starting feature selection for longitude...")
-lasso_lon = sklearn.linear_model.LassoCV(cv=5).fit(dfX_train,dfLon_train)
-coefs_lon = Series(lasso_lon.coef_,index=dfX_train.columns)
-lon_feats = list(coefs_lon[coefs_lon != 0].index)
-print("Done. ",lon_feats)
+#print("Starting feature selection for latitude...")
+#lasso_lat = sklearn.linear_model.LassoCV(cv=5).fit(dfX_train,dfLat_train)
+#coefs_lat = Series(lasso_lat.coef_,index=dfX_train.columns)
+#lat_feats = list(coefs_lat[coefs_lat != 0].index)
+#print("Done. ",lat_feats)
+
+#print("Starting feature selection for longitude...")
+#lasso_lon = sklearn.linear_model.LassoCV(cv=5).fit(dfX_train,dfLon_train)
+#coefs_lon = Series(lasso_lon.coef_,index=dfX_train.columns)
+#lon_feats = list(coefs_lon[coefs_lon != 0].index)
+#print("Done. ",lon_feats)
 
 ## Feedforward
 print("Constructing feed-forward neural network...")
@@ -76,8 +89,8 @@ ff.add(keras.layers.Dense(1,activation='linear',kernel_initializer='normal'))
 print("\tCompiling model...")
 ff.compile(
     optimizer="adam",
-    loss="mean_squared_error",
-    metrics=["root_mean_squared_error","r2_score"]
+    loss=mean_squared_error,
+    metrics=[root_mean_squared_error,r2_score]
 )
 print("Done.")
 ff.summary()
@@ -97,7 +110,7 @@ rnn.add(keras.layers.Dense(1,activation='linear'))
 print("\tCompiling model...")
 rnn.compile(
     optimizer="adam",
-    loss="mean_squared_error",
+    loss="mse",
     metrics=["root_mean_squared_error","r2_score"]
 )
 print("Done.")
@@ -112,8 +125,8 @@ rbf = keras.models.Sequential(name="radial_basis")
 print("\tCompiling model...")
 rbf.compile(
     optimizer="adam",
-    loss="mean_squared_error",
-    metrics=["root_mean_squared_error","r2_score"]
+    loss=mean_squared_error,
+    metrics=[root_mean_squared_error]
 )
 print("Done.")
 rbf.summary()
@@ -161,13 +174,22 @@ for model, info in zip([rnn,],_info):
         )
     )
 
-    _result = dict(zip(["Mean Square Error (Test)","Root MSE (Test)","R2 Score (Test)"],model.evaluate(dfX_test,dfLat_test,verbose=False)))
-    _result['Training Time'] = stop - start
-    _result['Target Variable'] = "Latitude"
-    _result['Feature Selection'] = False
+    #_eval = model.evaluate(dfX_test,dfLat_test,verbose=False)
+    _pred = model.predict(dfX_test,verbose=False)
+    _pred = target_scale.inverse_transform(DataFrame(_pred[:,-1,:]))
+    _real = target_scale.inverse_transform(DataFrame(dfLat_test))
+
+    _result = {
+        "Mean Square Error (Test)":mean_squared_error(_real,_pred),
+        "Root MSE (Test)":root_mean_squared_error(_real,_pred),
+        "R2 Score (Test)":r2_score(_real,_pred),
+        'Training Time': stop - start,
+        'Target Variable': "Latitude",
+        'Feature Selection': False,
+    }
         
     print("\t\tAdding latitude results to dataframe...")
-    df_results.loc[-1] = {**info,**_result,**_train}
+    df_results = concat([df_results,DataFrame([{**info,**_result,**_train}])])
 
     start = time.time()
     history = model.fit(
@@ -189,13 +211,21 @@ for model, info in zip([rnn,],_info):
 
     _train = dict(zip(["Mean Square Error (Train)","Root MSE (Train)","R2 Score (Train)","Mean Square Error (Validate)","Root MSE (Validate)","R2 Score (Validate)"],[x[-1] for x in history.history.values()]))
 
-    _result = dict(zip(["Mean Square Error (Test)","Root MSE (Test)","R2 Score (Test)"],model.evaluate(dfX_test,dfLon_test,verbose=False)))
-    _result['Training Time'] = stop - start
-    _result['Target Variable'] = "Longitude"
-    _result['Feature Selection'] = False
+    _pred = model.predict(dfX_test)
+    _pred = target_scale.inverse_transform(DataFrame(_pred[:,-1,:]))
+    _real = target_scale.inverse_transform(DataFrame(dfLon_test))
+
+    _result = {
+        "Mean Square Error (Test)":mean_squared_error(_real,_pred),
+        "Root MSE (Test)":root_mean_squared_error(_real,_pred),
+        "R2 Score (Test)":r2_score(_real,_pred),
+        'Training Time': stop - start,
+        'Target Variable': "Longitude",
+        'Feature Selection': False,
+    }
         
     print("\t\tAdding longitude results to dataframe...")
-    df_results.loc[-1] = {**info,**_result,**_train}
+    df_results.loc[len(df_results)] = {**info,**_result,**_train}
 
 print("Done.")
 
@@ -203,7 +233,7 @@ print("Neural network training complete! Moving on to traditional regression..."
 
 ## Multiple
 
-mlr = sklearn.linear_model.LinearRegression()
+mlr = LinearRegression()
 
 print("Training regression models...")
 for name, model in zip(["MLR","Poly","Ridge"],[mlr,]):
@@ -212,27 +242,26 @@ for name, model in zip(["MLR","Poly","Ridge"],[mlr,]):
         print("\t\t",target,"...")
 
         start = time.time()
-        mlr.fit(dfX_train,dfLat_train)
+        mlr.fit(dfX_train,target_train)
         stop = time.time()
 
         # train_pred = mlr.predict(dfX_train)
 
-        test_pred = mlr.predict(dfX_test)
-        mse = np.mean((dfLat_test - test_pred) ** 2)
-        r2 = 1 - (np.sum((dfLat_test - test_pred) ** 2) / np.sum((dfLat_test - np.mean(test_pred)) ** 2))
+        _pred = mlr.predict(dfX_test)
+
         _result = {
             "Model Name": name,
             "Model Type": "Traditional",
-            "Mean Square Error (Test)":mse,
-            "Root MSE (Test)": mse ** 0.5,
-            "R2 Score (Test)": r2,
+            "Mean Square Error (Test)":mean_squared_error(target_test,_pred),
+            "Root MSE (Test)": root_mean_squared_error(target_test,_pred),
+            "R2 Score (Test)": r2_score(target_test,_pred),
             "Target Variable": target,
             "Training Time":stop-start,
             "Feature Selection": False
         }
 
         print("Writing test metrics to dataframe...")
-        df_results.loc[-1] = _result
+        df_results.loc[len(df_results)] = _result
 
 ## Polynomial
 

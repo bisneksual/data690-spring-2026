@@ -1,41 +1,13 @@
 from pandas import DataFrame, read_csv, merge
 from math import floor
-from re import sub
+from emoji import EMOJIS
 import os
 from datetime import datetime
+import yaml
+import json
 
-WIND_DIRECTION = ("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
-
-WEATHER_COLUMN_MAP = {
-    "weather_code": "Weather Code",
-    "temperature_2m_max":"Max Temp",
-    "temperature_2m_min":"Min Temp",
-    "apparent_temperature_mean":"Avg Apparent Temp",
-    "daylight_duration":"Daylight",
-    "precipitation_sum":"Precipitation",
-    "wind_speed_10m_max":"Max Wind Sus",
-    "wind_direction_10m_dominant":"Wind Bearing",
-    "sunshine_duration":"Sunshine",
-    "temperature_2m_mean":"Avg Temp",
-    "wind_gusts_10m_max":"Max Wind Gusts",
-    "et0_fao_evapotranspiration":"Evapotranspiration",
-    "shortwave_radiation_sum":"Shortwave Radiation",
-    "relative_humidity_2m_mean":"Avg Rel Humid",
-    "relative_humidity_2m_max":"Max Rel Humid",
-    "relative_humidity_2m_min":"Min Rel Humid",
-    "pressure_msl_mean":"Avg Sea Level Pressure",
-    "pressure_msl_max":"Max Sea Level Pressure",
-    "pressure_msl_min":"Min Sea Level Pressure",
-    "surface_pressure_mean":"Avg Surface Pressure",
-    "surface_pressure_max":"Max Surface Pressure",
-    "surface_pressure_min":"Min Surface Pressure",
-    "cloud_cover_mean":"Avg Cloud Cover",
-    "cloud_cover_max":"Max Cloud Cover",
-    "cloud_cover_min":"Min Cloud Cover",
-    "wet_bulb_temperature_2m_mean":"Avg Wet Bulb",
-    "wet_bulb_temperature_2m_max":"Max Wet Bulb",
-    "wet_bulb_temperature_2m_min":"Min Wet Bulb",
-}
+with open("../.config/config.yaml",'r') as fp:
+    _config = yaml.safe_load(fp).get("merge_data")
 
 CRIME_CATEGORY = {
     "Identity Theft, Fraud, etc.": "354|666|662|664|951|654|649|940|652|653|950|660|651",
@@ -117,47 +89,45 @@ VICTIM_RACE_CODES = {
 #__logger.warning("Commencing data merging...")
 
 #exit()
-print("Checking for existing merged data...")
+print(EMOJIS['file']," Checking for existing merged data...")
 if os.path.exists("../vol/data/combined.csv"):
-    print("Merged data found, bypassing merging script...")
-    print("Done.")
+    print(EMOJIS['done']," Merged data found, bypassing merging script...")
+    print(EMOJIS['end'],' Data merging complete!')
     exit()
 
-print("Done.")
-
-print("Commencing data merging...")
-print("Opening crime data...")
+print(EMOJIS['start']," Commencing data merging...")
+print(EMOJIS['file']," Opening crime data...")
 with open('../data/crime.csv','r') as fp_crime:
     df_crime = read_csv(fp_crime)
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Opening weather data...")
+print(EMOJIS['file']," Opening weather data...")
 with open('../data/weather.csv','r') as fp_weather:
     df_weather = read_csv(fp_weather)
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Extracting date from report and occurrence timestamps...")
+print(EMOJIS['date']," Extracting date from report and occurrence timestamps...")
 df_crime['Date Rptd'] = [x.split(' ')[0] for x in df_crime['Date Rptd']]
 df_crime['DATE OCC'] = [x.split(' ')[0] for x in df_crime['DATE OCC']]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Initializing crime dataframe...")
+print(EMOJIS['crime']," Initializing crime dataframe...")
 df_crime2 = DataFrame()
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Splitting report dates...")
+print(EMOJIS['date']," Splitting report dates...")
 df_crime2['Reported Year'] = [int(x.split('/')[-1]) for x in df_crime['Date Rptd']]
 df_crime2['Reported Month'] = [int(x.split('/')[-3]) for x in df_crime['Date Rptd']]
 df_crime2['Reported Day'] = [int(x.split('/')[-2]) for x in df_crime['Date Rptd']]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Splitting occurrence dates...")
+print(EMOJIS['date']," Splitting occurrence dates...")
 df_crime2['Occurrence Year'] = [int(x.split('/')[-1]) for x in df_crime['DATE OCC']]
 df_crime2['Occurrence Month'] = [int(x.split('/')[-3]) for x in df_crime['DATE OCC']]
 df_crime2['Occurrence Day'] = [int(x.split('/')[-2]) for x in df_crime['DATE OCC']]
-print("Done.")
+print(EMOJIS['data']," Done.")
 
-print("Assigning columns to crime dataframe...")
+print(EMOJIS['crime']," Assigning columns to crime dataframe...")
 print("\tArea...")
 df_crime2['Area'] = df_crime['AREA NAME']
 
@@ -191,79 +161,80 @@ df_crime2["Latitude"] = df_crime["LAT"]
 print("\tLongitude...")
 df_crime2["Longitude"] = df_crime["LON"]
 
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Homogenizing crime dates for cross-referencing...")
+print(EMOJIS['date']," Homogenizing crime dates for cross-referencing...")
 df_crime2["Occurrence Date"] = ["{:04d}{:02d}{:02d}".format(y, m, d) for y, m, d in df_crime2[['Occurrence Year','Occurrence Month','Occurrence Day']].itertuples(index=False,name=None)]
 df_crime2["Report Date"] = ["{:04d}{:02d}{:02d}".format(y, m, d) for y, m, d in df_crime2[['Reported Year','Reported Month','Reported Day']].itertuples(index=False,name=None)]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Categorizing crime codes...")
+print(EMOJIS['crime']," Categorizing crime codes...")
 df_crime2["Crime Category"] = [[key for key, val in CRIME_CATEGORY.items() if str(x) in val] + ["Other"] for x in df_crime2['Crime Code']]
 df_crime2["Crime Category"] = [x[0] for x in df_crime2["Crime Category"]]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
 #print(f"Dropping rows with non-acceptable victim race codes...{sum(1 if x not in VICTIM_RACE_CODES.keys() else 0 for x in df_crime2["Victim Race"])}")
 #df_crime2 = df_crime2[[x in VICTIM_RACE_CODES.keys() for x in df_crime2["Victim Race"]]]
-#print("Done")
+#print(EMOJIS['data']," Done.")
 
-print(f"Dropping rows with non-acceptable victim age values...{len([df_crime2["Victim Age"]<=0])}")
+print(EMOJIS['rm'],f" Dropping rows with non-acceptable victim age values...{len([df_crime2["Victim Age"]<=0])}")
 df_crime2 = df_crime2[df_crime2["Victim Age"]>0]
-print("Done")
+print(EMOJIS['done']," Done.")
 
-print("Categorizing victim race codes...")
+print(EMOJIS['crime'],"Categorizing victim race codes...")
 df_crime2["V Race"] = [[val for key, val in VICTIM_RACE_CODES.items() if str(x) in key] + ["Unknown"] for x in df_crime2['Victim Race']]
 df_crime2["Victim Race"] = [x[0] for x in df_crime2["V Race"]]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Extracting date from weather timestamps...")
+print(EMOJIS['date']," Extracting date from weather timestamps...")
 df_weather['date'] = [x.split(' ')[0] for x in df_weather['date']]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
 df_weather2 = DataFrame()
 
 
-print("Assigning columns to crime dataframe...")
-for key, val in WEATHER_COLUMN_MAP.items():
+print(EMOJIS['weather']," Assigning columns to weather dataframe...")
+print("WEATHER_COLUMN_MAP" in _config)
+for key, val in _config.get("WEATHER_COLUMN_MAP",{}).items():
     print("\t",val,"...")
     df_weather2[val] = df_weather[key]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Splitting weather date...")
+print(EMOJIS['date']," Splitting weather date...")
 df_weather2['Year'] = [int(x.split('-')[0]) for x in df_weather['date']]
 df_weather2['Month'] = [int(x.split('-')[-2]) for x in df_weather['date']]
 df_weather2['Day'] = [int(x.split('-')[-1]) for x in df_weather['date']]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Binning wind direction values...")
-df_weather2['Wind Direction Index']  = [(floor((x / 22.5) + 0.5) % 16) for x in df_weather2['Wind Bearing']]
-df_weather2['Wind Direction'] = [WIND_DIRECTION[x] for x in df_weather2['Wind Direction Index']]
-print("Done.")
+#print(EMOJIS['wind']," Binning wind direction values...")
+#df_weather2['Wind Direction Index']  = [(floor((x / 22.5) + 0.5) % 16) for x in df_weather2['Wind Bearing']]
+#df_weather2['Wind Direction'] = [WIND_DIRECTION[x] for x in df_weather2['Wind Direction Index']]
+#print(EMOJIS['done']," Done.")
 
-print("Mapping weather codes...")
-df_weather2["Weather Code"] = [int(x) for x in df_weather2["Weather Code"]]
-df_weather2["Weather Code"] = [WEATHER_CODE_MAP[x] for x in df_weather2["Weather Code"]]
-print("Done.")
+#print("Mapping weather codes...")
+#df_weather2["Weather Code"] = [int(x) for x in df_weather2["Weather Code"]]
+#df_weather2["Weather Code"] = [WEATHER_CODE_MAP[x] for x in df_weather2["Weather Code"]]
+#print(EMOJIS['data']," Done.")
 
 #print(df_weather2.head())
 
-print("Homogenizing weather date for cross-referencing...")
+print(EMOJIS['date']," Homogenizing weather date for cross-referencing...")
 df_weather2["Date"] = ["{:04d}{:02d}{:02d}".format(y, m, d) for y, m, d in df_weather2[['Year','Month','Day']].itertuples(index=False,name=None)]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Merging crime and weather datasets using homogenized dates...")
+print(EMOJIS['merge']," Merging crime and weather datasets using homogenized dates...")
 df_combined = merge(df_crime2,df_weather2,left_on='Occurrence Date',right_on='Date',how='left')
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Re-establishing date format...")
+print(EMOJIS['date']," Re-establishing date format...")
 df_combined["Date"] = [datetime.strptime(x,'%Y%m%d') for x in df_combined['Date']]
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print('Dropping report date...')
+print(EMOJIS['date'],' Dropping report date...')
 df_combined = df_combined.drop(columns=['Reported Year','Reported Month','Reported Day'])
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print('Dropping extranneous variables...')
+print(EMOJIS['rm'],' Dropping extranneous variables...')
 df_combined = df_combined.drop(
     columns=[
         'Occurrence Year',
@@ -274,14 +245,14 @@ df_combined = df_combined.drop(
         "Day",
         "Occurrence Date",
         "Report Date",
-        "Wind Direction Index",
         "Crime",
         "Crime Code",
         "V Race",
+        "Location"
     ]
 )
 
-print("Dropping rows with missing values...")
+print(EMOJIS['rm']," Dropping rows with missing values...")
 
 print(f"\tLatitude...{len(df_combined[df_combined["Latitude"]==0])}")
 df_combined = df_combined[df_combined["Latitude"]>0]
@@ -291,13 +262,32 @@ df_combined = df_combined[df_combined["Longitude"]<0]
 
 print(df_combined["Victim Race"].value_counts())
 
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Writing combined dataset to file...")
+#with open("../vol/explore/loc_vals.json","w") as fp:
+#    json.dump(df_combined['Location'].value_counts().to_dict(),fp)
+
+#with open("../vol/explore/_vals.json","w") as fp:
+#    json.dump(df_combined['Location'].value_counts().to_dict(),fp)
+
+print(EMOJIS['data']," Indexing string variables...")
+for col, data in df_combined.items():
+    if data.dtype == 'str':
+        vals = list(data.unique())
+        with open(f"../vol/explore/{col}.json","w") as fp:
+            json.dump(dict(enumerate(vals)),fp)
+        df_combined[col] = [vals.index(x) for x in df_combined[col]]
+print(EMOJIS['done']," Done.")
+
+print(EMOJIS['date']," converting date to days since epoch...")
+df_combined['Date'] = [(x - datetime(1970,1,1)).days for x in df_combined['Date']]
+print(EMOJIS['done']," Done.")
+
+print(EMOJIS['write']," Writing combined dataset to file...")
 with open("../vol/data/combined.csv","w") as fp:
     df_combined.to_csv(fp)
-print("Done.")
+print(EMOJIS['done']," Done.")
 
-print("Verifying that the file was written...",os.path.exists("../vol/data/combined.csv"))
-print("Data merging complete!")
+print(EMOJIS['file']," Verifying that the file was written...",os.path.exists("../vol/data/combined.csv"))
+print(EMOJIS['end'],"Data merging complete!")
 

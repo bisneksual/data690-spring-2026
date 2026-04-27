@@ -1,0 +1,56 @@
+get_data:
+  CRIME_URL: https://data.lacity.org/api/views/2nrs-mtv8/rows.csv
+  WEATHER_URL: https://archive-api.open-meteo.com/v1/archive
+  WEATHER_PARAMS:
+    latitude: 34.0522
+    longitude: -118.2437
+    start_date: 2020-01-01
+    end_date: 2024-12-31
+    daily: ["weather_code","temperature_2m_max","temperature_2m_min",
+            "apparent_temperature_mean","daylight_duration","precipitation_sum",
+            "wind_speed_10m_max","wind_direction_10m_dominant","sunshine_duration",
+            "temperature_2m_mean","wind_gusts_10m_max","et0_fao_evapotranspiration",
+            "shortwave_radiation_sum","relative_humidity_2m_mean","relative_humidity_2m_max",
+            "relative_humidity_2m_min","pressure_msl_mean","pressure_msl_max",
+            "pressure_msl_min","surface_pressure_mean","surface_pressure_max",
+            "surface_pressure_min","cloud_cover_mean","cloud_cover_max",
+            "cloud_cover_min","wet_bulb_temperature_2m_mean","wet_bulb_temperature_2m_max",
+            "wet_bulb_temperature_2m_min"
+           ]
+    timezone: auto
+merge_data:
+  WIND_DIRECTION: [
+    "N","NNE","NE","ENE",
+    "E","ESE","SE","SSE",
+    "S","SSW","SW","WSW",
+    "W","WNW","NW","NNW"
+  ]
+  WEATHER_COLUMN_MAP:
+    weather_code: Weather Code
+    temperature_2m_max: Max Temp
+    temperature_2m_min: Min Temp
+    apparent_temperature_mean : Avg Apparent Temp
+    daylight_duration: Daylight
+    precipitation_sum: Precipitation
+    wind_speed_10m_max: Max Wind Sus
+    wind_direction_10m_dominant: Wind Bearing
+    sunshine_duration: Sunshine
+    temperature_2m_mean: Avg Temp
+    wind_gusts_10m_max: Max Wind Gusts
+    et0_fao_evapotranspiration: Evapotranspiration
+    shortwave_radiation_sum: Shortwave Radiation
+    relative_humidity_2m_mean: Avg Rel Humid
+    relative_humidity_2m_max: Max Rel Humid
+    relative_humidity_2m_min: Min Rel Humid
+    pressure_msl_mean: Avg Sea Level Pressure
+    pressure_msl_max: Max Sea Level Pressure
+    pressure_msl_min: Min Sea Level Pressure
+    surface_pressure_mean: Avg Surface Pressure
+    surface_pressure_max: Max Surface Pressure
+    surface_pressure_min: Min Surface Pressure
+    cloud_cover_mean: Avg Cloud Cover
+    cloud_cover_max: Max Cloud Cover
+    cloud_cover_min: Min Cloud Cover
+    wet_bulb_temperature_2m_mean: Avg Wet Bulb
+    wet_bulb_temperature_2m_max: Max Wet Bulb
+    wet_bulb_temperature_2m_min: Min Wet Bulb
