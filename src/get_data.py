@@ -47,10 +47,6 @@ else:
     responses = openmeteo.weather_api(_config.get("WEATHER_URL",""), params = params)
 
     response = responses[0]
-    print(f"  {EMOJIS['pin']} Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"  {EMOJIS['mtn']} Elevation: {response.Elevation()} m asl")
-    print(f"  {EMOJIS['clock']} Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
-    print(f"  {EMOJIS['clock']} Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
 
     # Process daily data. The order of variables needs to be the same as requested.
     daily = response.Daily()
@@ -129,4 +125,9 @@ else:
     with open('../data/weather.csv','w') as fp:
         daily_dataframe.to_csv(fp)
     print(EMOJIS['done']," Done.")
+    print("Response Info: ")
+    print(f"  {EMOJIS['pin']} Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
+    print(f"  {EMOJIS['mtn']} Elevation: {response.Elevation()} m asl")
+    print(f"  {EMOJIS['clock']} Timezone: {response.Timezone()}{response.TimezoneAbbreviation()}")
+    print(f"  {EMOJIS['clock']} Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
 print(EMOJIS['end']," Data fetching complete!")

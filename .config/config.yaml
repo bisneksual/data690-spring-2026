@@ -54,3 +54,7 @@ merge_data:
     wet_bulb_temperature_2m_mean: Avg Wet Bulb
     wet_bulb_temperature_2m_max: Max Wet Bulb
     wet_bulb_temperature_2m_min: Min Wet Bulb
+train_models:
+  FIT_NN: False
+  FIT_LIN_REG: True
+  ITERATIONS: 20
