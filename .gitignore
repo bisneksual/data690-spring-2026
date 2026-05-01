@@ -1,2 +1,6 @@
 vol/data/
 data/
+vol/model/lat.csv
+vol/model/lon.csv
+vol/model/lat/
+vol/model/lon/

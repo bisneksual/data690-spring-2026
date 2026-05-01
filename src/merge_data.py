@@ -9,84 +9,12 @@ import json
 with open("../.config/config.yaml",'r') as fp:
     _config = yaml.safe_load(fp).get("merge_data")
 
-CRIME_CATEGORY = {
-    "Identity Theft, Fraud, etc.": "354|666|662|664|951|654|649|940|652|653|950|660|651",
-    "Assault": "230|625|647",
-    "Theft From Vehicle": "331|420|410|421",
-    "Crime Against Child": "812|760|235|814",
-    "Neglect":"237|870",
-    "Kidnapping": "910|922|920|434",
-    "Theft": "440|480|350|442|351|444|670|474|446|471",
-    "Theft, Attempt": "441|443|450|475|452|451|485|445",
-    "Domestic Violence": "626|236",
-    "Burglary": "310|330|320",
-    "Battery": "624",
-    "Vandalism, Trespassing": "745|740|888|924|432|882|926",
-    "Stolen Vehicle": "510|520|522|487",
-    "Sex Offenses": "860|956|122|821|121|810|820|815|762|840|830",
-    "Grand Theft": "341|668|347|349|343|345|473",
-    "Threats, Brandishing": "906|928",
-    "Robbery": "210|220|353|453",
-    "Violation of Court Order, etc": "900|901|903|845|902",
-    "Arson":"648|755",
-    "Other": "946|954|813|949|943|944|942|948",
-    "Traffic Offenses": "890|438|433",
-    "Misc Firearm": "753|250|251|931|756|904",
-    "LEO Related Offenses": "623|231|437|439|622",
-    "Obscenity, Indecency": "850|886|932|880",
-    "Prostitution, Human Trafficking, etc.": "805|822|806|921",
-    "Tech Related Crimes": "661",
-    "Homicide": "110|113|435|436",
-    "Drug Related Crimes": "865",
-    "Stalking": "763|933",
-}
+if _config.get("bypass",False):
+    print("Bypassing...")
+    exit()
 
-WEATHER_CODE_MAP = {
-    0: "Clear sky",
-    1: "Mainly clear",
-    2: "Partly cloudy",
-    3: "Overcast",
-    45: "Fog",
-    48: "Depositing rime fog",
-    51: "Light drizzle",
-    53: "Moderate drizzle",
-    55: "Dense drizzle",
-    56: "Light drizzle",
-    57: "Dense freezing drizzle",
-    61: "Slight rain",
-    63: "Moderate rain",
-    65: "Heavy rain",
-    66: "Light freezing rain",
-    67: "Heavy freezing rain",
-    71: "Light snow fall",
-    73: "Moderate snow fall",
-    75: "Heacy snow fall",
-    77: "Snow grains",
-    80: "Slight rain showers",
-    81: "Mooderate rain showers",
-    82: "Violent rain showers",
-    85: "Light snow showers",
-    86: "Heavy snow showers",
-    95: "Thunderstorm",
-    96: "Thunderstorm with slight hail",
-    99: "Thunderstorn with heavy hail",
-}
-
-VICTIM_RACE_CODES = {
-    "W":"White",
-    "B": "Black",
-    "I": "American Indian/Alaskan Native",
-    "A": "Asian/Pacific Islander",
-    "P": "Native Hawaiian/Other Pacific Islander",
-    "H": "Hispanic or Latino",
-    "U": "Unknown",
-    "X": "Not Applicable",
-}
-
-#__logger = getLogger("data690.log")
-#print(__logger.handlers)
-
-#__logger.warning("Commencing data merging...")
+_race = _config.get("VICTIM_RACE_CODES",{})
+_crime = _config.get("CRIME_CATEGORY",{})
 
 #exit()
 print(EMOJIS['file']," Checking for existing merged data...")
@@ -169,7 +97,7 @@ df_crime2["Report Date"] = ["{:04d}{:02d}{:02d}".format(y, m, d) for y, m, d in 
 print(EMOJIS['done']," Done.")
 
 print(EMOJIS['crime']," Categorizing crime codes...")
-df_crime2["Crime Category"] = [[key for key, val in CRIME_CATEGORY.items() if str(x) in val] + ["Other"] for x in df_crime2['Crime Code']]
+df_crime2["Crime Category"] = [[key for key, val in _crime.items() if str(x) in val] + ["Other"] for x in df_crime2['Crime Code']]
 df_crime2["Crime Category"] = [x[0] for x in df_crime2["Crime Category"]]
 print(EMOJIS['done']," Done.")
 
@@ -182,7 +110,7 @@ df_crime2 = df_crime2[df_crime2["Victim Age"]>0]
 print(EMOJIS['done']," Done.")
 
 print(EMOJIS['crime'],"Categorizing victim race codes...")
-df_crime2["V Race"] = [[val for key, val in VICTIM_RACE_CODES.items() if str(x) in key] + ["Unknown"] for x in df_crime2['Victim Race']]
+df_crime2["V Race"] = [[val for key, val in _race.items() if str(x) in key] + ["Unknown"] for x in df_crime2['Victim Race']]
 df_crime2["Victim Race"] = [x[0] for x in df_crime2["V Race"]]
 print(EMOJIS['done']," Done.")
 

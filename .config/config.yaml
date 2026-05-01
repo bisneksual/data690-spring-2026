@@ -1,4 +1,5 @@
 get_data:
+  bypass: False
   CRIME_URL: https://data.lacity.org/api/views/2nrs-mtv8/rows.csv
   WEATHER_URL: https://archive-api.open-meteo.com/v1/archive
   WEATHER_PARAMS:
@@ -19,12 +20,8 @@ get_data:
            ]
     timezone: auto
 merge_data:
-  WIND_DIRECTION: [
-    "N","NNE","NE","ENE",
-    "E","ESE","SE","SSE",
-    "S","SSW","SW","WSW",
-    "W","WNW","NW","NNW"
-  ]
+  bypass: True
+  WIND_DIRECTION: ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
   WEATHER_COLUMN_MAP:
     weather_code: Weather Code
     temperature_2m_max: Max Temp
@@ -54,7 +51,88 @@ merge_data:
     wet_bulb_temperature_2m_mean: Avg Wet Bulb
     wet_bulb_temperature_2m_max: Max Wet Bulb
     wet_bulb_temperature_2m_min: Min Wet Bulb
+  VICTIM_RACE_CODES:
+    W: White
+    B: Black
+    I: American Indian/Alaskan Native
+    A: Asian/Pacific Islander
+    P: Native Hawaiian/Other Pacific Islander
+    H: Hispanic or Latino
+    U: Unknown
+    X: Not Applicable
+  WEATHER_CODE_MAP:
+    0: "Clear sky"
+    1: "Mainly clear"
+    2: "Partly cloudy"
+    3: "Overcast"
+    45: "Fog"
+    48: "Depositing rime fog"
+    51: "Light drizzle"
+    53: "Moderate drizzle"
+    55: "Dense drizzle"
+    56: "Light drizzle"
+    57: "Dense freezing drizzle"
+    61: "Slight rain"
+    63: "Moderate rain"
+    65: "Heavy rain"
+    66: "Light freezing rain"
+    67: "Heavy freezing rain"
+    71: "Light snow fall"
+    73: "Moderate snow fall"
+    75: "Heacy snow fall"
+    77: "Snow grains"
+    80: "Slight rain showers"
+    81: "Mooderate rain showers"
+    82: "Violent rain showers"
+    85: "Light snow showers"
+    86: "Heavy snow showers"
+    95: "Thunderstorm"
+    96: "Thunderstorm with slight hail"
+    99: "Thunderstorn with heavy hail"
+  CRIME_CATEGORY:
+    "Identity Theft, Fraud, etc.": "354|666|662|664|951|654|649|940|652|653|950|660|651"
+    "Assault": "230|625|647"
+    "Theft From Vehicle": "331|420|410|421"
+    "Crime Against Child": "812|760|235|814"
+    "Neglect": "237|870"
+    "Kidnapping": "910|922|920|434"
+    "Theft": "440|480|350|442|351|444|670|474|446|471"
+    "Theft, Attempt": "441|443|450|475|452|451|485|445"
+    "Domestic Violence": "626|236"
+    "Burglary": "310|330|320"
+    "Battery": "624"
+    "Vandalism, Trespassing": "745|740|888|924|432|882|926"
+    "Stolen Vehicle": "510|520|522|487"
+    "Sex Offenses": "860|956|122|821|121|810|820|815|762|840|830"
+    "Grand Theft": "341|668|347|349|343|345|473"
+    "Threats, Brandishing": "906|928"
+    "Robbery": "210|220|353|453"
+    "Violation of Court Order, etc": "900|901|903|845|902"
+    "Arson": "648|755"
+    "Other": "946|954|813|949|943|944|942|948"
+    "Traffic Offenses": "890|438|433"
+    "Misc Firearm": "753|250|251|931|756|904"
+    "LEO Related Offenses": "623|231|437|439|622"
+    "Obscenity, Indecency": "850|886|932|880"
+    "Prostitution, Human Trafficking, etc.": "805|822|806|921"
+    "Tech Related Crimes": "661"
+    "Homicide": "110|113|435|436"
+    "Drug Related Crimes": "865"
+    "Stalking": "763|933"
+explore_data:
+  bypass: True
 train_models:
-  FIT_NN: False
+  bypass: True
+  FIT_NN: True
   FIT_LIN_REG: True
-  ITERATIONS: 20
+  FIT_MODELS:
+    FFW: True
+    REC: True
+    RBF: True
+    MLR: True
+    PLY: False
+    RDG: False
+  ITERATIONS: 25
+viz_models:
+  bypass: False
+  RUN_GET_CHROME: True

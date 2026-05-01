@@ -10,6 +10,10 @@ from emoji import EMOJIS
 with open("../.config/config.yaml",'r') as fp:
     _config = yaml.safe_load(fp).get("get_data")
 
+if _config.get("bypass",False):
+    print("Bypassing...")
+    exit()
+
 print(EMOJIS['file']," Checking for existing merged data...")
 if os.path.exists('../vol/data/combined.csv'):
     print(EMOJIS['done'],"Merged data found, bypassing data fetching...")

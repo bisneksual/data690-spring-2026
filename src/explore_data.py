@@ -4,6 +4,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+import yaml
+
+with open("../.config/config.yaml","r") as fp:
+    _config = yaml.safe_load(fp).get("explore_data",{})
+
+if _config.get("bypass",False):
+    print("Bypassing...")
+    exit()
 
 print("Commencing data exploration...")
 
